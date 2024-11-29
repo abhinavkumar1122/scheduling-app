@@ -87,32 +87,70 @@ tr:hover {
 }
 
 /* Gantt Chart Styling */
+/* Gantt Chart Styling */
 .gantt-chart {
   margin-top: 2rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  width: 100%; /* Ensure full width */
+  height: 200px; /* Set height for the chart */
+  position: relative; /* Position bars inside the container */
+  border: 1px solid #ddd; /* Add a border around the Gantt chart */
 }
 
-.gantt-chart div {
+.gantt-row {
+  position: relative;
+  height: 30px; /* Row height */
+  margin-bottom: 10px;
   display: flex;
   align-items: center;
-  justify-content: center;
+}
+
+.gantt-bar {
+  position: absolute;
+  top: 0;
+  height: 100%; /* Full height of the row */
   background-color: #4CAF50;
   color: white;
   font-weight: bold;
-  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 5px;
+  box-sizing: border-box;
+  border: 2px solid #fff; /* Add border around the bars */
   transition: transform 0.3s ease-in-out;
+  padding: 0 5px;
 }
 
-.gantt-chart div:hover {
+.gantt-bar:hover {
   transform: scale(1.1);
 }
 
-.gantt-chart .idle {
-  background-color: #ff5722;
+.gantt-label {
+  color: white;
+  font-size: 12px;
+  text-align: center;
+  padding: 2px 5px;
 }
+
+/* Add timestamps to the bars */
+.gantt-bar .timestamp {
+  position: absolute;
+  top: -20px; /* Position the timestamp above the bar */
+  font-size: 12px;
+  color: #000;
+  background-color: #fff;
+  padding: 2px 5px;
+  border-radius: 3px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Box the whole gantt chart */
+.gantt-chart-container {
+  border: 2px solid #4CAF50; /* Border around the chart container */
+  border-radius: 10px;
+  padding: 10px;
+}
+
 
 /* Dropdown Styling */
 select {

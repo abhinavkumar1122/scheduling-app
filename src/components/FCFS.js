@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import GanttChart from "./GanttChart";  // Import the GanttChart component
+import GanttChart from "./GanttChart";
 
 function FCFS() {
   const [processes, setProcesses] = useState([]);
   const [results, setResults] = useState(null);
+  const [avgWaitingTime, setAvgWaitingTime] = useState(null);
+  const [avgTurnaroundTime, setAvgTurnaroundTime] = useState(null);
 
   const addProcess = () => {
     setProcesses([...processes, { pid: processes.length + 1, arrival_time: 0, burst_time: 0 }]);
@@ -28,17 +30,23 @@ function FCFS() {
       currentTime += process.burst_time;
     });
 
+    // Calculate average waiting time and turnaround time
+    const totalWaitingTime = updatedProcesses.reduce((acc, process) => acc + process.waiting_time, 0);
+    const totalTurnaroundTime = updatedProcesses.reduce((acc, process) => acc + process.turnaround_time, 0);
+    const numProcesses = updatedProcesses.length;
+
+    setAvgWaitingTime(totalWaitingTime / numProcesses);
+    setAvgTurnaroundTime(totalTurnaroundTime / numProcesses);
+
     setResults(updatedProcesses);
   };
 
   // Prepare data for the Gantt Chart
-  const ganttData = results
-    ? results.map((process) => ({
-        name: `P${process.pid}`,
-        start: (process.arrival_time / 100),  // Adjusting start percentage
-        end: ((process.completion_time) / 100), // Adjusting end percentage
-      }))
-    : [];
+  const ganttData = processes.map((process) => ({
+    name: process.pid,
+    startTime: process.arrival_time,
+    endTime: process.completion_time,
+  }));
 
   return (
     <div>
@@ -65,6 +73,7 @@ function FCFS() {
         </div>
       ))}
       <button onClick={calculateFCFS}>Calculate FCFS</button>
+      
       {results && (
         <div>
           <table border="1">
@@ -91,7 +100,12 @@ function FCFS() {
               ))}
             </tbody>
           </table>
-          
+
+          <div>
+            <h3>Average Waiting Time: {avgWaitingTime.toFixed(2)}</h3>
+            <h3>Average Turnaround Time: {avgTurnaroundTime.toFixed(2)}</h3>
+          </div>
+
           {/* Render the Gantt Chart */}
           <GanttChart processes={ganttData} />
         </div>

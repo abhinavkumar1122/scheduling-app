@@ -1,39 +1,48 @@
 import React, { useState } from "react";
 
 function FifoPageReplacement() {
-  const [pages, setPages] = useState([]);
+  const [pages, setPages] = useState([]); // List of pages the user inputs
   const [frameSize, setFrameSize] = useState(3); // Default frame size
   const [results, setResults] = useState(null);
 
+  // Add a new page with an initial value of 0
   const addPage = () => {
     setPages([...pages, { pageNumber: pages.length + 1, pageValue: 0 }]);
   };
 
+  // Handle change in the page value input
   const handlePageInputChange = (index, value) => {
     const updatedPages = [...pages];
     updatedPages[index].pageValue = parseInt(value, 10);
     setPages(updatedPages);
   };
 
+  // Calculate FIFO page replacement
   const calculateFifoPageReplacement = () => {
-    let frames = [];
+    let frames = new Array(frameSize).fill(null); // Initialize frames with null values
     let pageFaults = 0;
     let pageSequence = [];
+    let nextInsertIndex = 0; // The next index where a page should be inserted
 
+    // Iterate over each page in the sequence
     for (let i = 0; i < pages.length; i++) {
       const page = pages[i].pageValue;
-      if (!frames.includes(page)) {
-        if (frames.length < frameSize) {
-          frames.push(page); // Add page to frame if there's space
-        } else {
-          frames.shift(); // Remove the oldest page (FIFO)
-          frames.push(page); // Add the new page
-        }
+      const pageIndex = frames.indexOf(page); // Check if page already exists in frames
+
+      if (pageIndex === -1) {
+        // Page is not in the frame, we have a page fault
+        frames[nextInsertIndex] = page; // Place the page in the next available position
         pageFaults++;
+
+        // Update nextInsertIndex to the next position, wrapping around if necessary
+        nextInsertIndex = (nextInsertIndex + 1) % frameSize;
       }
-      pageSequence.push([...frames]); // Keep track of the page frame state after each page
+
+      // Store the current state of the frames
+      pageSequence.push([...frames]);
     }
 
+    // Store results for rendering
     setResults({ pageSequence, pageFaults });
   };
 
@@ -77,7 +86,7 @@ function FifoPageReplacement() {
           <ul>
             {results.pageSequence.map((frame, index) => (
               <li key={index}>
-                {frame.join(" | ")} {/* Display the frames after each page access */}
+                {frame.map((value, idx) => (value !== null ? value : "_")).join(" | ")} {/* Display frames */}
               </li>
             ))}
           </ul>
