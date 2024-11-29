@@ -1,9 +1,11 @@
 import React, { useState } from "react";
+import GanttChart from "./GanttChart"; // Import the GanttChart component
 
 function RoundRobin() {
   const [processes, setProcesses] = useState([]);
   const [results, setResults] = useState(null);
   const [timeQuantum, setTimeQuantum] = useState(4); // Default time quantum value
+  const [ganttData, setGanttData] = useState([]); // State for Gantt Chart data
 
   const addProcess = () => {
     setProcesses([
@@ -37,6 +39,7 @@ function RoundRobin() {
   const calculateRoundRobin = () => {
     let currentTime = 0;
     const queue = [];
+    const gantt = [];
     const updatedProcesses = processes.map((p) => ({
       ...p,
       remaining_time: p.burst_time,
@@ -49,9 +52,11 @@ function RoundRobin() {
     updatedProcesses.sort((a, b) => a.arrival_time - b.arrival_time);
 
     while (updatedProcesses.some((p) => p.remaining_time > 0)) {
+      const time = currentTime;
+
       // Add processes that have arrived by currentTime to the queue
       updatedProcesses.forEach((process) => {
-        if (process.arrival_time <= currentTime && process.remaining_time > 0 && !queue.includes(process)) {
+        if (process.arrival_time <= time && process.remaining_time > 0 && !queue.includes(process)) {
           queue.push(process);
         }
       });
@@ -60,6 +65,7 @@ function RoundRobin() {
         const currentProcess = queue.shift(); // Get the first process in the queue
 
         // Process Execution
+        const start = currentTime;
         if (currentProcess.remaining_time > timeQuantum) {
           currentTime += timeQuantum;
           currentProcess.remaining_time -= timeQuantum;
@@ -70,6 +76,14 @@ function RoundRobin() {
           currentProcess.turnaround_time = currentProcess.completion_time - currentProcess.arrival_time;
           currentProcess.waiting_time = currentProcess.turnaround_time - currentProcess.burst_time;
         }
+        const end = currentTime;
+
+        // Add the process execution to the Gantt chart data
+        gantt.push({
+          name: currentProcess.pid,
+          start: (start / currentTime) * 100,
+          end: (end / currentTime) * 100,
+        });
       } else {
         // If the queue is empty, increment time to move forward
         currentTime += 1;
@@ -77,6 +91,7 @@ function RoundRobin() {
     }
 
     setResults(updatedProcesses); // Update the results state
+    setGanttData(gantt); // Update the Gantt chart data state
   };
 
   return (
@@ -129,7 +144,12 @@ function RoundRobin() {
           <tbody>{displayResults(results)}</tbody>
         </table>
       )}
-      {results && results.length === 0 && <p>No results to display.</p>}
+      {ganttData.length > 0 && (
+        <div>
+          <h3>Gantt Chart</h3>
+          <GanttChart processes={ganttData} />
+        </div>
+      )}
     </div>
   );
 }

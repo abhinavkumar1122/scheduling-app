@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import GanttChart from "./GanttChart"; // Import the GanttChart component
 
 function SJF() {
   const [processes, setProcesses] = useState([]);
   const [results, setResults] = useState(null);
+  const [ganttData, setGanttData] = useState([]);
 
   const addProcess = () => {
     setProcesses([...processes, { pid: processes.length + 1, arrival_time: 0, burst_time: 0 }]);
@@ -18,10 +20,12 @@ function SJF() {
     let currentTime = 0;
     let remainingProcesses = [...processes];
     const completedProcesses = [];
+    const ganttProcesses = [];
 
     while (remainingProcesses.length > 0) {
+      const time = currentTime;
       // Filter processes that have arrived by the current time
-      const availableProcesses = remainingProcesses.filter((p) => p.arrival_time <= currentTime);
+      const availableProcesses = remainingProcesses.filter((p) => p.arrival_time <= time);
 
       if (availableProcesses.length === 0) {
         // If no process is available, move the current time to the next process's arrival time
@@ -40,6 +44,13 @@ function SJF() {
       currentProcess.turnaround_time = currentProcess.completion_time - currentProcess.arrival_time;
       currentProcess.waiting_time = currentProcess.turnaround_time - currentProcess.burst_time;
 
+      // Generate Gantt chart data
+      ganttProcesses.push({
+        name: currentProcess.pid,
+        start: (currentTime / 100), // Normalize the time for the Gantt chart visualization (percentage)
+        end: ((currentTime + currentProcess.burst_time) / 100), // Normalize the end time as well
+      });
+
       // Update the current time
       currentTime += currentProcess.burst_time;
 
@@ -51,6 +62,7 @@ function SJF() {
     }
 
     setResults(completedProcesses);
+    setGanttData(ganttProcesses);
   };
 
   return (
@@ -78,6 +90,8 @@ function SJF() {
         </div>
       ))}
       <button onClick={calculateSJF}>Calculate SJF</button>
+
+      {/* Display Results in Table */}
       {results && (
         <table border="1">
           <thead>
@@ -104,6 +118,9 @@ function SJF() {
           </tbody>
         </table>
       )}
+
+      {/* Gantt Chart Visualization */}
+      {ganttData.length > 0 && <GanttChart processes={ganttData} />}
     </div>
   );
 }

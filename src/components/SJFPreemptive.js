@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import GanttChart from "./GanttChart"; // Import your GanttChart component
 
 function SRTF() {
   const [processes, setProcesses] = useState([]);
   const [results, setResults] = useState(null);
+  const [ganttData, setGanttData] = useState([]); // State to hold Gantt chart data
 
   const addProcess = () => {
     setProcesses([...processes, { pid: processes.length + 1, arrival_time: 0, burst_time: 0 }]);
@@ -24,11 +26,14 @@ function SRTF() {
       waiting_time: 0,
     }));
     const completedProcesses = [];
+    const ganttChartData = [];
     let totalProcesses = processes.length;
 
     while (completedProcesses.length < totalProcesses) {
+      const time = currentTime;
+
       // Filter processes that have arrived by the current time
-      const availableProcesses = remainingProcesses.filter((p) => p.arrival_time <= currentTime && p.remaining_time > 0);
+      const availableProcesses = remainingProcesses.filter((p) => p.arrival_time <= time && p.remaining_time > 0);
 
       if (availableProcesses.length === 0) {
         // If no process is available, move the current time to the next process's arrival time
@@ -42,6 +47,7 @@ function SRTF() {
 
       // Execute the process for 1 unit of time
       currentProcess.remaining_time -= 1;
+      ganttChartData.push({ name: currentProcess.pid, start: currentTime, end: currentTime + 1 });
       currentTime += 1;
 
       // If the process finishes, calculate its times
@@ -56,6 +62,7 @@ function SRTF() {
     }
 
     setResults(completedProcesses);
+    setGanttData(ganttChartData); // Update Gantt chart data
   };
 
   return (
@@ -84,30 +91,34 @@ function SRTF() {
       ))}
       <button onClick={calculateSRTF}>Calculate SRTF</button>
       {results && (
-        <table border="1">
-          <thead>
-            <tr>
-              <th>PID</th>
-              <th>Arrival Time</th>
-              <th>Burst Time</th>
-              <th>Completion Time</th>
-              <th>Turnaround Time</th>
-              <th>Waiting Time</th>
-            </tr>
-          </thead>
-          <tbody>
-            {results.map((process) => (
-              <tr key={process.pid}>
-                <td>{process.pid}</td>
-                <td>{process.arrival_time}</td>
-                <td>{process.burst_time}</td>
-                <td>{process.completion_time}</td>
-                <td>{process.turnaround_time}</td>
-                <td>{process.waiting_time}</td>
+        <>
+          <table border="1">
+            <thead>
+              <tr>
+                <th>PID</th>
+                <th>Arrival Time</th>
+                <th>Burst Time</th>
+                <th>Completion Time</th>
+                <th>Turnaround Time</th>
+                <th>Waiting Time</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {results.map((process) => (
+                <tr key={process.pid}>
+                  <td>{process.pid}</td>
+                  <td>{process.arrival_time}</td>
+                  <td>{process.burst_time}</td>
+                  <td>{process.completion_time}</td>
+                  <td>{process.turnaround_time}</td>
+                  <td>{process.waiting_time}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <h3>Gantt Chart</h3>
+          <GanttChart processes={ganttData} /> {/* Render Gantt chart */}
+        </>
       )}
     </div>
   );
