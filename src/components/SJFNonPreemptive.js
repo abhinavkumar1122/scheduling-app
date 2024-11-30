@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import GanttChart from "./GanttChart"; // Import the GanttChart component
 
 function SJF() {
   const [processes, setProcesses] = useState([]);
@@ -24,40 +23,30 @@ function SJF() {
 
     while (remainingProcesses.length > 0) {
       const time = currentTime;
-      // Filter processes that have arrived by the current time
       const availableProcesses = remainingProcesses.filter((p) => p.arrival_time <= time);
 
       if (availableProcesses.length === 0) {
-        // If no process is available, move the current time to the next process's arrival time
         currentTime = Math.min(...remainingProcesses.map((p) => p.arrival_time));
         continue;
       }
 
-      // Sort available processes by burst time
       availableProcesses.sort((a, b) => a.burst_time - b.burst_time);
 
-      // Pick the process with the shortest burst time
       const currentProcess = availableProcesses[0];
 
-      // Calculate times for the selected process
       currentProcess.completion_time = currentTime + currentProcess.burst_time;
       currentProcess.turnaround_time = currentProcess.completion_time - currentProcess.arrival_time;
       currentProcess.waiting_time = currentProcess.turnaround_time - currentProcess.burst_time;
 
-      // Generate Gantt chart data
       ganttProcesses.push({
-        name: currentProcess.pid,
-        start: (currentTime / 100), // Normalize the time for the Gantt chart visualization (percentage)
-        end: ((currentTime + currentProcess.burst_time) / 100), // Normalize the end time as well
+        name: `P${currentProcess.pid}`,
+        startTime: currentTime,
+        endTime: currentTime + currentProcess.burst_time,
       });
 
-      // Update the current time
       currentTime += currentProcess.burst_time;
 
-      // Move the completed process to the results
       completedProcesses.push(currentProcess);
-
-      // Remove the completed process from the remaining list
       remainingProcesses = remainingProcesses.filter((p) => p.pid !== currentProcess.pid);
     }
 
@@ -91,36 +80,66 @@ function SJF() {
       ))}
       <button onClick={calculateSJF}>Calculate SJF</button>
 
-      {/* Display Results in Table */}
       {results && (
-        <table border="1">
-          <thead>
-            <tr>
-              <th>PID</th>
-              <th>Arrival Time</th>
-              <th>Burst Time</th>
-              <th>Completion Time</th>
-              <th>Turnaround Time</th>
-              <th>Waiting Time</th>
-            </tr>
-          </thead>
-          <tbody>
-            {results.map((process) => (
-              <tr key={process.pid}>
-                <td>{process.pid}</td>
-                <td>{process.arrival_time}</td>
-                <td>{process.burst_time}</td>
-                <td>{process.completion_time}</td>
-                <td>{process.turnaround_time}</td>
-                <td>{process.waiting_time}</td>
+        <div>
+          <h3>Results</h3>
+          <table border="1">
+            <thead>
+              <tr>
+                <th>PID</th>
+                <th>Arrival Time</th>
+                <th>Burst Time</th>
+                <th>Completion Time</th>
+                <th>Turnaround Time</th>
+                <th>Waiting Time</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {results.map((process) => (
+                <tr key={process.pid}>
+                  <td>{process.pid}</td>
+                  <td>{process.arrival_time}</td>
+                  <td>{process.burst_time}</td>
+                  <td>{process.completion_time}</td>
+                  <td>{process.turnaround_time}</td>
+                  <td>{process.waiting_time}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
-      {/* Gantt Chart Visualization */}
-      {ganttData.length > 0 && <GanttChart processes={ganttData} />}
+      {ganttData.length > 0 && (
+        <div>
+          <h3>Gantt Chart</h3>
+          <div
+            style={{
+              display: "flex",
+              border: "1px solid #ccc",
+              padding: "10px",
+              overflowX: "auto",
+            }}
+          >
+            {ganttData.map((block, index) => (
+              <div
+                key={index}
+                style={{
+                  flex: block.endTime - block.startTime,
+                  border: "1px solid black",
+                  padding: "10px",
+                  textAlign: "center",
+                  backgroundColor: "#f0f0f0",
+                  marginRight: "5px",
+                  minWidth: "50px",
+                }}
+              >
+                {block.name} ({block.startTime}-{block.endTime})
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

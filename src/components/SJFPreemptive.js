@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import GanttChart from "./GanttChart"; // Import your GanttChart component
 
 function SRTF() {
   const [processes, setProcesses] = useState([]);
   const [results, setResults] = useState(null);
-  const [ganttData, setGanttData] = useState([]); // State to hold Gantt chart data
+  const [ganttData, setGanttData] = useState([]);
 
   const addProcess = () => {
     setProcesses([...processes, { pid: processes.length + 1, arrival_time: 0, burst_time: 0 }]);
@@ -20,7 +19,7 @@ function SRTF() {
     let currentTime = 0;
     let remainingProcesses = processes.map((p) => ({
       ...p,
-      remaining_time: p.burst_time, // Track remaining burst time
+      remaining_time: p.burst_time,
       completion_time: 0,
       turnaround_time: 0,
       waiting_time: 0,
@@ -32,37 +31,43 @@ function SRTF() {
     while (completedProcesses.length < totalProcesses) {
       const time = currentTime;
 
-      // Filter processes that have arrived by the current time
-      const availableProcesses = remainingProcesses.filter((p) => p.arrival_time <= time && p.remaining_time > 0);
+      // Get available processes that have arrived and still need time to complete
+      const availableProcesses = remainingProcesses.filter(
+        (p) => p.arrival_time <= time && p.remaining_time > 0
+      );
 
       if (availableProcesses.length === 0) {
-        // If no process is available, move the current time to the next process's arrival time
-        currentTime = Math.min(...remainingProcesses.filter((p) => p.remaining_time > 0).map((p) => p.arrival_time));
+        // No process is available at this time, move the time forward to the next available process
+        currentTime = Math.min(
+          ...remainingProcesses.filter((p) => p.remaining_time > 0).map((p) => p.arrival_time)
+        );
         continue;
       }
 
-      // Sort by remaining time, and pick the process with the shortest remaining time
+      // Sort processes by remaining time (Shortest Remaining Time First)
       availableProcesses.sort((a, b) => a.remaining_time - b.remaining_time);
       const currentProcess = availableProcesses[0];
 
-      // Execute the process for 1 unit of time
+      // Process is running for 1 unit of time
       currentProcess.remaining_time -= 1;
-      ganttChartData.push({ name: currentProcess.pid, start: currentTime, end: currentTime + 1 });
+      ganttChartData.push({
+        name: `P${currentProcess.pid}`,
+        startTime: currentTime,
+        endTime: currentTime + 1,
+      });
       currentTime += 1;
 
-      // If the process finishes, calculate its times
       if (currentProcess.remaining_time === 0) {
+        // If process is completed, calculate times
         currentProcess.completion_time = currentTime;
         currentProcess.turnaround_time = currentProcess.completion_time - currentProcess.arrival_time;
         currentProcess.waiting_time = currentProcess.turnaround_time - currentProcess.burst_time;
-
-        // Move the completed process to the results
         completedProcesses.push(currentProcess);
       }
     }
 
     setResults(completedProcesses);
-    setGanttData(ganttChartData); // Update Gantt chart data
+    setGanttData(ganttChartData);
   };
 
   return (
@@ -92,7 +97,7 @@ function SRTF() {
       <button onClick={calculateSRTF}>Calculate SRTF</button>
       {results && (
         <>
-          <table border="1">
+          <table border="1" style={{ marginTop: "20px", width: "100%", textAlign: "center" }}>
             <thead>
               <tr>
                 <th>PID</th>
@@ -116,8 +121,29 @@ function SRTF() {
               ))}
             </tbody>
           </table>
-          <h3>Gantt Chart</h3>
-          <GanttChart processes={ganttData} /> {/* Render Gantt chart */}
+          {ganttData.length > 0 && (
+            <div>
+              <h3>Gantt Chart</h3>
+              <div style={{ display: "flex", border: "1px solid #ccc", padding: "10px", overflowX: "auto" }}>
+                {ganttData.map((block, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      flex: block.endTime - block.startTime,
+                      border: "1px solid black",
+                      padding: "10px",
+                      textAlign: "center",
+                      backgroundColor: "#f0f0f0",
+                      marginRight: "5px",
+                      minWidth: "50px",
+                    }}
+                  >
+                    {block.name} ({block.startTime}-{block.endTime})
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

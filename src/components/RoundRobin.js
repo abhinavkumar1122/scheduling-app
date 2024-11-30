@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import GanttChart from "./GanttChart"; // Import the GanttChart component
 
 function RoundRobin() {
   const [processes, setProcesses] = useState([]);
   const [results, setResults] = useState(null);
-  const [timeQuantum, setTimeQuantum] = useState(4); // Default time quantum value
+  const [timeQuantum, setTimeQuantum] = useState(4); // Default time quantum
   const [ganttData, setGanttData] = useState([]); // State for Gantt Chart data
 
   const addProcess = () => {
@@ -23,19 +22,6 @@ function RoundRobin() {
     setProcesses(updatedProcesses);
   };
 
-  const displayResults = (processes) => {
-    return processes.map((process) => (
-      <tr key={process.pid}>
-        <td>{process.pid}</td>
-        <td>{process.arrival_time}</td>
-        <td>{process.burst_time}</td>
-        <td>{process.completion_time}</td>
-        <td>{process.turnaround_time}</td>
-        <td>{process.waiting_time}</td>
-      </tr>
-    ));
-  };
-
   const calculateRoundRobin = () => {
     let currentTime = 0;
     const queue = [];
@@ -52,9 +38,9 @@ function RoundRobin() {
     updatedProcesses.sort((a, b) => a.arrival_time - b.arrival_time);
 
     while (updatedProcesses.some((p) => p.remaining_time > 0)) {
+      
       const time = currentTime;
 
-      // Add processes that have arrived by currentTime to the queue
       updatedProcesses.forEach((process) => {
         if (process.arrival_time <= time && process.remaining_time > 0 && !queue.includes(process)) {
           queue.push(process);
@@ -63,9 +49,8 @@ function RoundRobin() {
 
       if (queue.length > 0) {
         const currentProcess = queue.shift(); // Get the first process in the queue
+        const executionStart = currentTime;
 
-        // Process Execution
-        const start = currentTime;
         if (currentProcess.remaining_time > timeQuantum) {
           currentTime += timeQuantum;
           currentProcess.remaining_time -= timeQuantum;
@@ -76,23 +61,50 @@ function RoundRobin() {
           currentProcess.turnaround_time = currentProcess.completion_time - currentProcess.arrival_time;
           currentProcess.waiting_time = currentProcess.turnaround_time - currentProcess.burst_time;
         }
-        const end = currentTime;
 
-        // Add the process execution to the Gantt chart data
+        // Add process execution to Gantt chart
         gantt.push({
-          name: currentProcess.pid,
-          start: (start / currentTime) * 100,
-          end: (end / currentTime) * 100,
+          processId: `P${currentProcess.pid}`,
+          startTime: executionStart,
+          endTime: currentTime,
         });
+
+        // Re-add to queue if not completed
+        if (currentProcess.remaining_time > 0) queue.push(currentProcess);
       } else {
-        // If the queue is empty, increment time to move forward
-        currentTime += 1;
+        currentTime++;
       }
     }
 
-    setResults(updatedProcesses); // Update the results state
-    setGanttData(gantt); // Update the Gantt chart data state
+    setResults(updatedProcesses); // Update results state
+    setGanttData(gantt); // Update Gantt chart data state
   };
+
+  const renderGanttChart = () => (
+    <div style={{ display: "flex", flexDirection: "row", marginTop: "20px" }}>
+      {ganttData.map((item, index) => (
+        <div
+          key={index}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            margin: "0 5px",
+            padding: "10px",
+            backgroundColor: "#4caf50",
+            color: "white",
+            borderRadius: "4px",
+            minWidth: `${item.endTime - item.startTime}em`,
+          }}
+        >
+          <span>{item.processId}</span>
+          <span>
+            {item.startTime} - {item.endTime}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div>
@@ -129,25 +141,41 @@ function RoundRobin() {
         </div>
       ))}
       <button onClick={calculateRoundRobin}>Calculate Round Robin</button>
-      {results && results.length > 0 && (
-        <table border="1">
-          <thead>
-            <tr>
-              <th>PID</th>
-              <th>Arrival Time</th>
-              <th>Burst Time</th>
-              <th>Completion Time</th>
-              <th>Turnaround Time</th>
-              <th>Waiting Time</th>
-            </tr>
-          </thead>
-          <tbody>{displayResults(results)}</tbody>
-        </table>
+
+      {results && (
+        <div>
+          <h3>Results</h3>
+          <table border="1">
+            <thead>
+              <tr>
+                <th>PID</th>
+                <th>Arrival Time</th>
+                <th>Burst Time</th>
+                <th>Completion Time</th>
+                <th>Turnaround Time</th>
+                <th>Waiting Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {results.map((process) => (
+                <tr key={process.pid}>
+                  <td>{process.pid}</td>
+                  <td>{process.arrival_time}</td>
+                  <td>{process.burst_time}</td>
+                  <td>{process.completion_time}</td>
+                  <td>{process.turnaround_time}</td>
+                  <td>{process.waiting_time}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
+
       {ganttData.length > 0 && (
         <div>
           <h3>Gantt Chart</h3>
-          <GanttChart processes={ganttData} />
+          {renderGanttChart()}
         </div>
       )}
     </div>
