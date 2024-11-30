@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import GanttChart from "./GanttChart";
 
 function FCFS() {
   const [processes, setProcesses] = useState([]);
