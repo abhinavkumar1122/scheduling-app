@@ -1,6 +1,8 @@
-import React from "react"; 
+import React from "react";
 
 const GanttChart = ({ processes }) => {
+  const totalTime = processes.reduce((acc, process) => acc + process.endTime - process.startTime, 0);
+
   return (
     <div className="gantt-chart-container">
       <div className="gantt-chart">
@@ -9,12 +11,11 @@ const GanttChart = ({ processes }) => {
             <div
               className="gantt-bar"
               style={{
-                left: `${process.start}%`, // Start position based on the percentage
-                width: `${process.end - process.start}%`, // Width of the bar
+                left: `${(process.startTime / totalTime) * 100}%`, // Normalize start time
+                width: `${((process.endTime - process.startTime) / totalTime) * 100}%`, // Normalize width
               }}
             >
               <span className="gantt-label">P{process.name}</span>
-              {/* Add timestamp above the bar */}
               <span className="timestamp">
                 {process.startTime} - {process.endTime}
               </span>
@@ -27,3 +28,4 @@ const GanttChart = ({ processes }) => {
 };
 
 export default GanttChart;
+
