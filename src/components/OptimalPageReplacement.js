@@ -1,115 +1,185 @@
 import React, { useState } from "react";
 
-function OptimalPageReplacement() {
-  const [pages, setPages] = useState([]); // Pages the user enters
-  const [frameSize, setFrameSize] = useState(3); // Default frame size
-  const [results, setResults] = useState(null); // Results to display
+const OptimalPageReplacement = () => {
+  const [pages, setPages] = useState("");
+  const [frameSize, setFrameSize] = useState("");
+  const [hits, setHits] = useState(null);
+  const [misses, setMisses] = useState(null);
+  const [states, setStates] = useState([]); // To track all states
 
-  // Add a page with a default value of 0
-  const addPage = () => {
-    setPages([...pages, { pageNumber: pages.length + 1, pageValue: 0 }]);
-  };
-
-  // Handle page input changes (change the page value)
-  const handlePageInputChange = (index, value) => {
-    const updatedPages = [...pages];
-    updatedPages[index].pageValue = parseInt(value, 10);
-    setPages(updatedPages);
-  };
-
-  // Function to calculate Optimal Page Replacement
-  const calculateOptimalPageReplacement = () => {
-    let frames = new Array(frameSize).fill(null); // Initialize frames with null values
-    let pageFaults = 0;
-    let pageSequence = [];
-
-    // Iterate over the pages
-    for (let i = 0; i < pages.length; i++) {
-      const page = pages[i].pageValue;
-      const pageIndex = frames.indexOf(page);
-
-      if (pageIndex === -1) {
-        // If page is not in frames, we have a page fault
-        if (frames.includes(null)) {
-          // If there is an empty slot, place the page there
-          const emptyIndex = frames.indexOf(null);
-          frames[emptyIndex] = page;
-        } else {
-          // If no empty slot, we need to evict a page (use optimal algorithm)
-          const futureUses = [];
-
-          // For each page in the frame, calculate when it will be used next (after current page)
-          for (let j = 0; j < frames.length; j++) {
-            const framePage = frames[j];
-            // Find the next occurrence of the page in the remaining sequence
-            const nextUse = pages.slice(i + 1).indexOf(framePage);
-            futureUses.push(nextUse === -1 ? Infinity : nextUse); // If not found, set as Infinity
-          }
-
-          // Find the page that will not be used for the longest period (the farthest in future)
-          const farthestIndex = futureUses.indexOf(Math.max(...futureUses));
-
-          // Replace that page with the new page
-          frames[farthestIndex] = page;
-        }
-        pageFaults++;
+  // Function to check whether a page exists in a frame
+  const search = (key, frames) => {
+    for (let i = 0; i < frames.length; i++) {
+      if (frames[i] === key) {
+        return true;
       }
+    }
+    return false;
+  };
 
-      // Keep track of the page frame state after each page access
-      pageSequence.push([...frames]);
+  // Function to predict the frame to replace
+  const predict = (pages, frames, pn, index) => {
+    let res = -1,
+      farthest = index;
+    for (let i = 0; i < frames.length; i++) {
+      let j;
+      for (j = index; j < pn; j++) {
+        if (frames[i] === pages[j]) {
+          if (j > farthest) {
+            farthest = j;
+            res = i;
+          }
+          break;
+        }
+      }
+      if (j === pn) {
+        return i;
+      }
+    }
+    return res === -1 ? 0 : res;
+  };
+
+  // Optimal page replacement algorithm
+  const optimalPage = () => {
+    const pg = pages.split(",").map(Number); // Convert input string to an array of numbers
+    const pn = pg.length;
+    const fn = parseInt(frameSize, 10);
+
+    if (isNaN(fn) || fn <= 0 || pn === 0) {
+      alert("Please provide valid input!");
+      return;
     }
 
-    setResults({ pageSequence, pageFaults });
+    let frames = [];
+    let hit = 0;
+    let statesLog = []; // To log each state
+
+    for (let i = 0; i < pn; i++) {
+      const currentPage = pg[i];
+      let result;
+
+      // Page found in a frame: HIT
+      if (search(currentPage, frames)) {
+        hit++;
+        result = `HIT`;
+      } else {
+        // Page not found in a frame: MISS
+        result = `MISS`;
+
+        // If there is space available in frames
+        if (frames.length < fn) {
+          frames.push(currentPage);
+        } else {
+          // Find the page to be replaced
+          const j = predict(pg, frames, pn, i + 1);
+          frames[j] = currentPage;
+        }
+      }
+
+      // Log the current state
+      statesLog.push({
+        page: currentPage,
+        result,
+        frames: [...frames], // Store a copy of the frames
+      });
+    }
+
+    setHits(hit);
+    setMisses(pn - hit);
+    setStates(statesLog);
   };
 
   return (
-    <div>
-      <h2>Optimal Page Replacement</h2>
-      <button onClick={addPage}>Add Page</button>
+    <div style={{ padding: "20px", fontFamily: "Arial" }}>
+      <h2>Optimal Page Replacement Algorithm</h2>
       <div>
-        <label>
-          Frame Size:
-          <input
-            type="number"
-            value={frameSize}
-            onChange={(e) => setFrameSize(parseInt(e.target.value, 10))}
-          />
-        </label>
+        <label>Page Reference String (comma-separated): </label>
+        <input
+          type="text"
+          value={pages}
+          onChange={(e) => setPages(e.target.value)}
+          placeholder="e.g., 7,0,1,2,0,3"
+        />
       </div>
-      <div>
-        <label>Pages:</label>
-        {pages.map((page, index) => (
-          <div key={index}>
-            <label>
-              Page {page.pageNumber}:
-              <input
-                type="number"
-                value={page.pageValue}
-                onChange={(e) => handlePageInputChange(index, e.target.value)}
-              />
-            </label>
-          </div>
-        ))}
+      <div style={{ marginTop: "10px" }}>
+        <label>Frame Size: </label>
+        <input
+          type="number"
+          value={frameSize}
+          onChange={(e) => setFrameSize(e.target.value)}
+          placeholder="e.g., 4"
+        />
       </div>
-      <button onClick={calculateOptimalPageReplacement}>Calculate Optimal Page Replacement</button>
-
-      {results && (
-        <div>
-          <h3>Results</h3>
-          <p>Total Page Faults: {results.pageFaults}</p>
-          <h4>Page Frame Sequence:</h4>
-          <ul>
-            {results.pageSequence.map((frame, index) => (
-              <li key={index}>
-                {frame.map((value, idx) => (value !== null ? value : "_")).join(" | ")}
-                {/* Display the frames after each page access, use _ for empty slots */}
-              </li>
-            ))}
-          </ul>
+      <button
+        onClick={optimalPage}
+        style={{
+          marginTop: "20px",
+          padding: "10px 20px",
+          backgroundColor: "#007BFF",
+          color: "white",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}
+      >
+        Calculate
+      </button>
+      {hits !== null && misses !== null && (
+        <div style={{ marginTop: "20px" }}>
+          <h3>Results:</h3>
+          <p>
+            <strong>Number of Hits:</strong> {hits}
+          </p>
+          <p>
+            <strong>Number of Misses:</strong> {misses}
+          </p>
+          <h3>Step-by-Step State:</h3>
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              marginTop: "10px",
+            }}
+          >
+            <thead>
+              <tr>
+                <th style={{ border: "1px solid black", padding: "8px" }}>
+                  Step
+                </th>
+                <th style={{ border: "1px solid black", padding: "8px" }}>
+                  Page
+                </th>
+                <th style={{ border: "1px solid black", padding: "8px" }}>
+                  Result
+                </th>
+                <th style={{ border: "1px solid black", padding: "8px" }}>
+                  Frames
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {states.map((state, index) => (
+                <tr key={index}>
+                  <td style={{ border: "1px solid black", padding: "8px" }}>
+                    {index + 1}
+                  </td>
+                  <td style={{ border: "1px solid black", padding: "8px" }}>
+                    {state.page}
+                  </td>
+                  <td style={{ border: "1px solid black", padding: "8px" }}>
+                    {state.result}
+                  </td>
+                  <td style={{ border: "1px solid black", padding: "8px" }}>
+                    {state.frames.join(", ")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
   );
-}
+};
 
 export default OptimalPageReplacement;
