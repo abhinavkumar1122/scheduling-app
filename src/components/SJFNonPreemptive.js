@@ -4,6 +4,8 @@ function SJF() {
   const [processes, setProcesses] = useState([]);
   const [results, setResults] = useState(null);
   const [ganttData, setGanttData] = useState([]);
+  const [avgWaitingTime, setAvgWaitingTime] = useState(0);
+  const [avgTurnaroundTime, setAvgTurnaroundTime] = useState(0);
 
   const addProcess = () => {
     setProcesses([...processes, { pid: processes.length + 1, arrival_time: 0, burst_time: 0 }]);
@@ -20,6 +22,8 @@ function SJF() {
     let remainingProcesses = [...processes];
     const completedProcesses = [];
     const ganttProcesses = [];
+    let totalWaitingTime = 0;
+    let totalTurnaroundTime = 0;
 
     while (remainingProcesses.length > 0) {
       const time = currentTime;
@@ -44,12 +48,20 @@ function SJF() {
         endTime: currentTime + currentProcess.burst_time,
       });
 
+      totalWaitingTime += currentProcess.waiting_time;
+      totalTurnaroundTime += currentProcess.turnaround_time;
+
       currentTime += currentProcess.burst_time;
 
       completedProcesses.push(currentProcess);
       remainingProcesses = remainingProcesses.filter((p) => p.pid !== currentProcess.pid);
     }
 
+    const avgWT = totalWaitingTime / completedProcesses.length;
+    const avgTAT = totalTurnaroundTime / completedProcesses.length;
+
+    setAvgWaitingTime(avgWT);
+    setAvgTurnaroundTime(avgTAT);
     setResults(completedProcesses);
     setGanttData(ganttProcesses);
   };
@@ -107,6 +119,10 @@ function SJF() {
               ))}
             </tbody>
           </table>
+          <div style={{ marginTop: "20px" }}>
+            <h3>Average Waiting Time: {avgWaitingTime.toFixed(2)} ms</h3>
+            <h3>Average Turnaround Time: {avgTurnaroundTime.toFixed(2)} ms</h3>
+          </div>
         </div>
       )}
 

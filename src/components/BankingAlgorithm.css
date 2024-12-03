@@ -1,0 +1,88 @@
+/* BankingAlgorithm.css */
+
+.banking-algorithm {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background-color: #f4f4f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  h2 {
+    text-align: center;
+    color: #333;
+  }
+  
+  .buttons {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  button {
+    padding: 10px 20px;
+    margin: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: #45a049;
+  }
+  
+  .processes, .resources {
+    margin-bottom: 20px;
+  }
+  
+  .process, .resource-input {
+    margin: 10px 0;
+  }
+  
+  .process h4 {
+    margin: 10px 0;
+    color: #333;
+  }
+  
+  .resource-inputs label, .resource-input label {
+    display: block;
+    margin: 5px 0;
+  }
+  
+  input[type="number"], input[type="text"] {
+    padding: 5px;
+    width: 100px;
+    margin-left: 10px;
+  }
+  
+  .results {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .results h3 {
+    color: #333;
+  }
+  
+  .safe-sequence ul, .needs ul {
+    list-style-type: none;
+    padding-left: 0;
+  }
+  
+  .safe-sequence li, .process-need li {
+    padding: 5px 0;
+  }
+  
+  .process-need {
+    margin-bottom: 15px;
+  }
+  
+  .process-need h5 {
+    font-size: 1.1em;
+    margin-bottom: 5px;
+    color: #333;
+  }
+  

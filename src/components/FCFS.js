@@ -103,9 +103,10 @@ function FCFS() {
           </table>
 
           <div style={{ marginBottom: "20px" }}>
-            <h3>Average Waiting Time: {avgWaitingTime.toFixed(2)}</h3>
-            <h3>Average Turnaround Time: {avgTurnaroundTime.toFixed(2)}</h3>
+            <h3>Average Waiting Time: {avgWaitingTime.toFixed(2)} ms</h3>
+            <h3>Average Turnaround Time: {avgTurnaroundTime.toFixed(2)} ms</h3>
           </div>
+
 
           {/* Render the Gantt Chart */}
           <h3>Gantt Chart</h3>

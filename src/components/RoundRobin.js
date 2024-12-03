@@ -5,6 +5,7 @@ function RoundRobin() {
   const [results, setResults] = useState(null);
   const [timeQuantum, setTimeQuantum] = useState(4); // Default time quantum
   const [ganttData, setGanttData] = useState([]); // State for Gantt Chart data
+  const [averages, setAverages] = useState({ avgTurnaroundTime: 0, avgWaitingTime: 0 });
 
   const addProcess = () => {
     setProcesses([
@@ -38,7 +39,6 @@ function RoundRobin() {
     updatedProcesses.sort((a, b) => a.arrival_time - b.arrival_time);
 
     while (updatedProcesses.some((p) => p.remaining_time > 0)) {
-      
       const time = currentTime;
 
       updatedProcesses.forEach((process) => {
@@ -58,8 +58,10 @@ function RoundRobin() {
           currentTime += currentProcess.remaining_time;
           currentProcess.remaining_time = 0;
           currentProcess.completion_time = currentTime;
-          currentProcess.turnaround_time = currentProcess.completion_time - currentProcess.arrival_time;
-          currentProcess.waiting_time = currentProcess.turnaround_time - currentProcess.burst_time;
+          currentProcess.turnaround_time =
+            currentProcess.completion_time - currentProcess.arrival_time;
+          currentProcess.waiting_time =
+            currentProcess.turnaround_time - currentProcess.burst_time;
         }
 
         // Add process execution to Gantt chart
@@ -75,6 +77,16 @@ function RoundRobin() {
         currentTime++;
       }
     }
+
+    // Calculate averages
+    const totalProcesses = updatedProcesses.length;
+    const totalTurnaroundTime = updatedProcesses.reduce((sum, p) => sum + p.turnaround_time, 0);
+    const totalWaitingTime = updatedProcesses.reduce((sum, p) => sum + p.waiting_time, 0);
+
+    setAverages({
+      avgTurnaroundTime: (totalTurnaroundTime / totalProcesses).toFixed(2),
+      avgWaitingTime: (totalWaitingTime / totalProcesses).toFixed(2),
+    });
 
     setResults(updatedProcesses); // Update results state
     setGanttData(gantt); // Update Gantt chart data state
@@ -169,6 +181,8 @@ function RoundRobin() {
               ))}
             </tbody>
           </table>
+          <h4>Average Turnaround Time: {averages.avgTurnaroundTime} ms</h4>
+          <h4>Average Waiting Time: {averages.avgWaitingTime} ms</h4>
         </div>
       )}
 

@@ -4,6 +4,8 @@ function SRTF() {
   const [processes, setProcesses] = useState([]);
   const [results, setResults] = useState(null);
   const [ganttData, setGanttData] = useState([]);
+  const [avgWaitingTime, setAvgWaitingTime] = useState(0);
+  const [avgTurnaroundTime, setAvgTurnaroundTime] = useState(0);
 
   const addProcess = () => {
     setProcesses([...processes, { pid: processes.length + 1, arrival_time: 0, burst_time: 0 }]);
@@ -66,6 +68,12 @@ function SRTF() {
       }
     }
 
+    const totalWaitingTime = completedProcesses.reduce((sum, p) => sum + p.waiting_time, 0);
+    const totalTurnaroundTime = completedProcesses.reduce((sum, p) => sum + p.turnaround_time, 0);
+
+    setAvgWaitingTime((totalWaitingTime / totalProcesses).toFixed(2));
+    setAvgTurnaroundTime((totalTurnaroundTime / totalProcesses).toFixed(2));
+
     setResults(completedProcesses);
     setGanttData(ganttChartData);
   };
@@ -121,6 +129,8 @@ function SRTF() {
               ))}
             </tbody>
           </table>
+          <h3>Average Waiting Time: {avgWaitingTime} ms</h3>
+          <h3>Average Turnaround Time: {avgTurnaroundTime} ms</h3>
           {ganttData.length > 0 && (
             <div>
               <h3>Gantt Chart</h3>
